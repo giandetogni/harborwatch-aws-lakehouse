@@ -54,3 +54,9 @@ output "glue_service_role_arn" {
   description = "IAM role ARN used by AWS Glue jobs."
   value       = aws_iam_role.glue_service_role.arn
 }
+
+
+output "raw_to_bronze_glue_job_name" {
+  description = "AWS Glue job name for Raw to Bronze transformation."
+  value       = aws_glue_job.raw_to_bronze.name
+}
