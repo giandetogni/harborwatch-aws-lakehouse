@@ -135,3 +135,22 @@ Validation query result:
 - max_event_timestamp: 2024-01-01 23:59:37
 
 This confirms that the AWS Raw-to-Bronze pipeline is operational.
+
+## AWS Silver Data Quality Report Validation
+
+The Silver Data Quality Report was created and validated through Athena.
+
+Validation result:
+
+- total_records: 1000
+- valid_records: 997
+- rejected_records: 3
+- invalid_coordinates_count: 0
+- null_vessel_id_count: 0
+- duplicate_records_count: 0
+- impossible_speed_count: 0
+- unavailable_speed_count: 3
+- future_timestamp_count: 0
+- rejection_rate: 0.003
+
+This confirms that the AWS Silver layer has an auditable data quality report.
