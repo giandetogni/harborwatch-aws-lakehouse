@@ -20,4 +20,3 @@ data/profiling/
 *.tfstate.*
 *.tfvars
 !terraform.tfvars.example
-.terraform.lock.hcl
