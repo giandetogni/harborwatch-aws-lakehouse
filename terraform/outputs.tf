@@ -32,3 +32,14 @@ output "gold_s3_uri" {
   description = "Gold zone S3 URI."
   value       = "s3://${aws_s3_bucket.lakehouse.bucket}/gold/"
 }
+
+
+output "athena_workgroup_name" {
+  description = "Athena workgroup used for HarborWatch queries."
+  value       = aws_athena_workgroup.lakehouse.name
+}
+
+output "athena_results_s3_uri" {
+  description = "S3 URI used for Athena query results."
+  value       = "s3://${aws_s3_bucket.lakehouse.bucket}/athena-results/"
+}
