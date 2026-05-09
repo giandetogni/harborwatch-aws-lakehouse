@@ -90,3 +90,24 @@ Anomalies within port radius:
 - Los Angeles / Long Beach: 2
 
 This confirms that the S3 Gold outputs are queryable through Athena.
+
+## Athena CLI Workgroup Validation
+
+The Terraform-managed Athena workgroup was validated through AWS CLI.
+
+Workgroup:
+
+- harborwatch-dev-athena-workgroup
+
+Validated query:
+
+SELECT port_name, port_congestion_index FROM harborwatch_lakehouse.gold_port_congestion_daily ORDER BY port_congestion_index DESC;
+
+Execution result:
+
+- QueryExecutionId: ed921db1-34aa-4671-b504-4efa6e4872fd
+- Status: SUCCEEDED
+- Data scanned: 632 bytes
+- Output location: s3://harborwatch-dev-lakehouse-giandetogni/athena-results/ed921db1-34aa-4671-b504-4efa6e4872fd.csv
+
+This confirms that the Terraform-managed Athena workgroup can execute queries against the Gold external tables.
