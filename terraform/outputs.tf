@@ -60,3 +60,8 @@ output "raw_to_bronze_glue_job_name" {
   description = "AWS Glue job name for Raw to Bronze transformation."
   value       = aws_glue_job.raw_to_bronze.name
 }
+
+output "bronze_to_silver_clean_glue_job_name" {
+  description = "AWS Glue job name for Bronze to Silver clean transformation."
+  value       = aws_glue_job.bronze_to_silver_clean.name
+}

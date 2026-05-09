@@ -29,3 +29,35 @@ resource "aws_glue_job" "raw_to_bronze" {
     "--OUTPUT_PATH"                      = "s3://${aws_s3_bucket.lakehouse.bucket}/bronze/ais_messages/"
   }
 }
+
+resource "aws_s3_object" "bronze_to_silver_clean_glue_script" {
+  bucket = aws_s3_bucket.lakehouse.id
+  key    = "scripts/glue/bronze_to_silver_clean_glue.py"
+  source = "${path.module}/../src/glue_jobs_aws/bronze_to_silver_clean_glue.py"
+  etag   = filemd5("${path.module}/../src/glue_jobs_aws/bronze_to_silver_clean_glue.py")
+}
+
+resource "aws_glue_job" "bronze_to_silver_clean" {
+  name              = "${local.name_prefix}-bronze-to-silver-clean"
+  description       = "Applies data quality rules to Bronze AIS Parquet data and writes Silver clean positions."
+  role_arn          = aws_iam_role.glue_service_role.arn
+  glue_version      = "4.0"
+  worker_type       = "G.1X"
+  number_of_workers = 2
+  timeout           = 10
+  max_retries       = 0
+
+  command {
+    name            = "glueetl"
+    script_location = "s3://${aws_s3_bucket.lakehouse.bucket}/${aws_s3_object.bronze_to_silver_clean_glue_script.key}"
+    python_version  = "3"
+  }
+
+  default_arguments = {
+    "--job-language"                     = "python"
+    "--enable-metrics"                   = "true"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--INPUT_PATH"                       = "s3://${aws_s3_bucket.lakehouse.bucket}/bronze/ais_messages/"
+    "--OUTPUT_PATH"                      = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/vessel_positions_clean/"
+  }
+}
