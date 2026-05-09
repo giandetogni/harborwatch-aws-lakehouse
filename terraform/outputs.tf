@@ -43,3 +43,14 @@ output "athena_results_s3_uri" {
   description = "S3 URI used for Athena query results."
   value       = "s3://${aws_s3_bucket.lakehouse.bucket}/athena-results/"
 }
+
+
+output "glue_service_role_name" {
+  description = "IAM role name used by AWS Glue jobs."
+  value       = aws_iam_role.glue_service_role.name
+}
+
+output "glue_service_role_arn" {
+  description = "IAM role ARN used by AWS Glue jobs."
+  value       = aws_iam_role.glue_service_role.arn
+}
