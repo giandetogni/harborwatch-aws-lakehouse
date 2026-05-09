@@ -6,14 +6,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.pyc
-
 # Environment variables
 .env
-
 # Large public AIS data
 data/raw/public_ais/
 *.zip
-
 # Generated local pipeline outputs
 data/processed/
 data/profiling/
