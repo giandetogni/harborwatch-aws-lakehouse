@@ -1,6 +1,8 @@
 # HarborWatch — AWS Lakehouse for Maritime Supply Chain Risk Intelligence
 
-HarborWatch is a data engineering project that transforms public AIS vessel tracking data into port congestion intelligence.
+![CI](https://github.com/giandetogni/harborwatch-aws-lakehouse/actions/workflows/ci.yml/badge.svg)
+
+HarborWatch is a data engineering project that transforms public AIS vessel tracking data into port congestion and maritime supply chain risk intelligence.
 
 The project ingests raw vessel position data, standardizes it into a Bronze layer, validates and enriches it into Silver datasets, applies geospatial processing near major US ports, and produces Gold analytical tables for congestion and anomaly monitoring.
 
@@ -8,26 +10,47 @@ The project ingests raw vessel position data, standardizes it into a Bronze laye
 
 Port congestion affects supply chain reliability. Raw AIS vessel tracking data is large, noisy, geospatial, time-dependent, and difficult to analyze directly.
 
-HarborWatch turns raw maritime data into structured, quality-controlled, analytics-ready datasets.
+HarborWatch turns raw maritime data into structured, quality-controlled, analytics-ready datasets that can support port congestion analysis, dwell time monitoring, vessel anomaly detection, and operational risk intelligence.
 
 ## Current Status
 
-The local MVP is working.
+The project currently has a working local MVP and an initial AWS foundation.
 
-Implemented locally:
+### Implemented locally
 
 - Raw AIS ingestion from public NOAA / MarineCadastre data
 - Full-file profiling of 7.29M AIS records
-- Random sample generation with 500,000 records
+- Reproducible random sample generation with 500,000 records
 - Bronze standardized AIS messages
 - Silver row-level data quality classification
 - Silver port proximity enrichment
 - Silver vessel stop detection
 - Gold port congestion metrics
 - Gold vessel anomaly table
-- Local assumptions and MVP results documentation
+- Unit tests for geospatial, quality, and congestion rules
+- Local pipeline orchestration through Makefile
+- CI with GitHub Actions
+- Local architecture and assumptions documentation
 
-Cloud deployment with AWS S3, Glue, Iceberg, Athena, Step Functions, and Terraform is planned for the next phase.
+### Implemented on AWS
+
+- Terraform foundation for S3 and Glue Data Catalog
+- Private S3 lakehouse bucket
+- Raw, Bronze, Silver, Gold, and Athena results prefixes
+- Glue Data Catalog database
+- Gold CSV outputs uploaded to S3
+- Athena external tables for Gold congestion and vessel anomalies
+- Athena validation queries returning port congestion and anomaly results
+
+### Planned next
+
+- Terraform-managed Athena workgroup
+- AWS Glue ETL jobs
+- Apache Iceberg tables
+- Step Functions orchestration
+- CloudWatch logging and monitoring
+- Cost estimate and operational runbook
+- Dashboard or query result screenshots
 
 ## Data Source
 
@@ -58,7 +81,7 @@ Random sample rejection rate: 0.2252%
 
 ## MVP Port Scope
 
-The current MVP focuses on five US port areas:
+The MVP focuses on five US port areas:
 
 - Los Angeles / Long Beach
 - New York / New Jersey
@@ -74,8 +97,9 @@ Raw AIS data
 → Silver vessel positions clean
 → Silver vessel port proximity
 → Silver vessel stops
-→ Gold port congestion daily
 → Gold vessel anomalies
+→ Gold port congestion daily
+→ Athena queries
 ```
 
 ## Lakehouse Layers
@@ -180,10 +204,10 @@ Current assumptions:
 | Port | Vessels Near Port | Stopped Vessels | Avg Dwell Minutes | P90 Dwell Minutes | Stopped Position Count | Anomaly Count | Port Congestion Index |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | Houston | 302 | 279 | 211.16 | 494.16 | 13,400 | 0 | 0.6649 |
-| Los Angeles / Long Beach | 324 | 272 | 126.38 | 254.97 | 8,856 | 2 | 0.2635 |
-| New York / New Jersey | 300 | 257 | 183.93 | 428.91 | 9,834 | 44 | 0.4906 |
-| Savannah | 79 | 64 | 167.32 | 339.20 | 2,610 | 13 | 0.1796 |
 | Seattle / Tacoma | 711 | 614 | 121.13 | 228.02 | 19,626 | 23 | 0.6500 |
+| New York / New Jersey | 300 | 257 | 183.93 | 428.91 | 9,834 | 44 | 0.4906 |
+| Los Angeles / Long Beach | 324 | 272 | 126.38 | 254.97 | 8,856 | 2 | 0.2635 |
+| Savannah | 79 | 64 | 167.32 | 339.20 | 2,610 | 13 | 0.1796 |
 
 ## Port Congestion Index
 
@@ -199,36 +223,112 @@ Weather is not included in the MVP.
 
 The score is relative to the selected sample and selected ports. It should not be interpreted as an absolute real-world congestion measurement.
 
-## Repository Structure
+## AWS Deployment
+
+The current AWS foundation was provisioned with Terraform.
+
+Created resources:
+
+- S3 lakehouse bucket
+- Raw zone prefix
+- Bronze zone prefix
+- Silver zone prefix
+- Gold zone prefix
+- Athena results prefix
+- Glue Data Catalog database
+
+S3 bucket:
 
 ```text
-harborwatch-aws-lakehouse/
-├── README.md
-├── architecture/
-├── data/
-├── dashboard/
-├── docs/
-├── src/
-│   ├── ingestion/
-│   ├── glue_jobs/
-│   └── quality/
-├── terraform/
-└── tests/
+harborwatch-dev-lakehouse-giandetogni
 ```
+
+S3 prefixes:
+
+```text
+athena-results/
+bronze/
+gold/
+raw/
+silver/
+```
+
+Glue database:
+
+```text
+harborwatch_lakehouse
+```
+
+Gold outputs uploaded to S3:
+
+```text
+s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_port_congestion_daily/date=2024-01-01/gold_port_congestion_daily.csv
+s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_vessel_anomalies/date=2024-01-01/gold_vessel_anomalies.csv
+```
+
+## Athena Validation
+
+Athena external tables were created for:
+
+- `harborwatch_lakehouse.gold_port_congestion_daily`
+- `harborwatch_lakehouse.gold_vessel_anomalies`
+
+Validated query:
+
+```sql
+SELECT *
+FROM harborwatch_lakehouse.gold_port_congestion_daily
+ORDER BY port_congestion_index DESC;
+```
+
+Result: 5 MVP ports returned.
+
+Validated anomaly query:
+
+```sql
+SELECT
+  nearest_port_name,
+  anomaly_type,
+  severity,
+  COUNT(*) AS anomaly_count
+FROM harborwatch_lakehouse.gold_vessel_anomalies
+WHERE is_within_port_radius = 'True'
+GROUP BY nearest_port_name, anomaly_type, severity
+ORDER BY anomaly_count DESC;
+```
+
+Result:
+
+| Port | Anomaly Type | Severity | Count |
+|---|---|---|---:|
+| New York / New Jersey | speed_not_available | low | 44 |
+| Seattle / Tacoma | speed_not_available | low | 23 |
+| Savannah | speed_not_available | low | 13 |
+| Los Angeles / Long Beach | speed_not_available | low | 2 |
 
 ## How to Run Locally
 
 The local MVP pipeline can be executed with `make`.
 
-Main commands:
+### Run the full local pipeline
 
 ```bash
 make run-local
+```
+
+### Show current Gold outputs
+
+```bash
 make show-results
+```
+
+### Clean generated outputs
+
+```bash
 make clean-outputs
 ```
 
-Current local pipeline order:
+The full local pipeline executes:
 
 ```text
 1. Create random AIS sample
@@ -241,32 +341,150 @@ Current local pipeline order:
 8. Silver to Gold port congestion
 ```
 
+## Tests
+
+Run tests locally:
+
+```bash
+python -m pytest
+```
+
+The current test suite covers:
+
+- haversine distance calculation
+- latitude and longitude validation
+- AIS speed sentinel handling
+- impossible speed detection
+- min-max normalization
+- Port Congestion Index calculation
+
+CI runs automatically through GitHub Actions on push and pull request.
+
+## Terraform
+
+Terraform files are located in:
+
+```text
+terraform/
+```
+
+Current Terraform scope:
+
+- S3 lakehouse bucket
+- S3 public access block
+- S3 server-side encryption
+- S3 versioning
+- Raw/Bronze/Silver/Gold/Athena prefixes
+- Glue Data Catalog database
+- Terraform outputs
+
+Validate Terraform:
+
+```bash
+cd terraform
+terraform fmt
+terraform validate
+```
+
+Review plan:
+
+```bash
+terraform plan
+```
+
+Apply infrastructure:
+
+```bash
+terraform apply
+```
+
+Do not commit:
+
+- `terraform.tfstate`
+- `terraform.tfstate.backup`
+- `terraform.tfvars`
+- AWS access keys
+- local data files
+
+## Repository Structure
+
+```text
+harborwatch-aws-lakehouse/
+├── .github/
+│   └── workflows/
+├── architecture/
+├── data/
+│   └── raw/
+├── docs/
+├── sql/
+├── src/
+│   ├── geospatial/
+│   ├── glue_jobs/
+│   ├── ingestion/
+│   ├── metrics/
+│   └── quality/
+├── terraform/
+├── tests/
+├── Makefile
+└── README.md
+```
+
 ## Documentation
 
 Additional documentation:
 
 - `docs/assumptions.md`
 - `docs/local_mvp_results.md`
+- `docs/aws_deployment.md`
 - `architecture/local_mvp_architecture.md`
 - `architecture/aws_target_architecture.md`
+- `sql/create_athena_gold_tables.sql`
+
+## Security
+
+Current security choices:
+
+- S3 public access is blocked.
+- S3 server-side encryption is enabled with AES256.
+- Terraform state and variable files are ignored by Git.
+- AWS credentials are not stored in the repository.
+- Generated local data outputs are ignored by Git.
 
 ## Current Limitations
 
 - Local MVP uses CSV files, not Iceberg tables yet.
-- AWS infrastructure is not implemented yet.
+- AWS Glue ETL jobs are not implemented yet.
 - Port proximity is point-based, not polygon-based.
 - Stop detection is rule-based and approximate.
 - Only one AIS day is used.
 - Local analytical outputs are based on a random sample, not the full dataset.
 - The Port Congestion Index is relative to the sample and MVP ports.
+- Athena currently queries external CSV Gold tables, not Iceberg tables.
+
+## Trade-offs
+
+### Batch instead of streaming
+
+AIS data can be processed in batch for the MVP. Streaming would add complexity without enough return at this stage.
+
+### Athena before Redshift
+
+Athena is sufficient for querying small Gold outputs and validating the lakehouse path. Redshift Serverless is unnecessary for the current scope.
+
+### Step Functions before Airflow
+
+Step Functions is the target orchestrator for AWS because the pipeline scope is small and AWS-native. Airflow would be overkill for the MVP.
+
+### Point-radius proximity before polygons
+
+The MVP uses a 20 km radius around port coordinates. A production-grade version should use port polygons, terminals, anchorages, and shipping lanes.
 
 ## Next Steps
 
-- Add tests for data quality and geospatial functions
-- Add Makefile for local reproducibility
-- Improve script parametrization
-- Create architecture diagram
-- Add Terraform foundation
-- Deploy Raw/Bronze/Silver/Gold pipeline to AWS
-- Query outputs with Athena
-- Add dashboard or result screenshots
+- Add Terraform-managed Athena workgroup
+- Port local CSV transformations to AWS Glue jobs
+- Store Bronze, Silver, and Gold tables as Apache Iceberg
+- Orchestrate the AWS pipeline with Step Functions
+- Add CloudWatch logging and pipeline monitoring
+- Add cost estimate and operational runbook
+- Add dashboard or query result screenshots
