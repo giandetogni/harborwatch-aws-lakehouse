@@ -60,3 +60,12 @@ cd terraform && terraform output
 ## Important
 
 Terraform state files and local variable files must not be committed to Git.
+
+## Uploaded Gold Outputs
+
+Gold CSV outputs were uploaded to S3:
+
+- s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_port_congestion_daily/date=2024-01-01/gold_port_congestion_daily.csv
+- s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_vessel_anomalies/date=2024-01-01/gold_vessel_anomalies.csv
+
+These files prove that the AWS foundation contains real analytical outputs from the local MVP pipeline.
