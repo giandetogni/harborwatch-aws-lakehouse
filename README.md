@@ -1,0 +1,262 @@
+# HarborWatch — AWS Lakehouse for Maritime Supply Chain Risk Intelligence
+
+HarborWatch is a data engineering project that transforms public AIS vessel tracking data into port congestion intelligence.
+
+The project ingests raw vessel position data, standardizes it into a Bronze layer, validates and enriches it into Silver datasets, applies geospatial processing near major US ports, and produces Gold analytical tables for congestion and anomaly monitoring.
+
+## Problem
+
+Port congestion affects supply chain reliability. Raw AIS vessel tracking data is large, noisy, geospatial, time-dependent, and difficult to analyze directly.
+
+HarborWatch turns raw maritime data into structured, quality-controlled, analytics-ready datasets.
+
+## Current Status
+
+The local MVP is working.
+
+Implemented locally:
+
+- Raw AIS ingestion from public NOAA / MarineCadastre data
+- Full-file profiling of 7.29M AIS records
+- Random sample generation with 500,000 records
+- Bronze standardized AIS messages
+- Silver row-level data quality classification
+- Silver port proximity enrichment
+- Silver vessel stop detection
+- Gold port congestion metrics
+- Gold vessel anomaly table
+- Local assumptions and MVP results documentation
+
+Cloud deployment with AWS S3, Glue, Iceberg, Athena, Step Functions, and Terraform is planned for the next phase.
+
+## Data Source
+
+The project uses public AIS vessel tracking data from NOAA / MarineCadastre.
+
+Local source file:
+
+```text
+AIS_2024_01_01.zip
+```
+
+Full source profile:
+
+```text
+Total records scanned: 7,296,275
+Rejected records: 16,875
+Full-file rejection rate: 0.2313%
+```
+
+Analytical sample:
+
+```text
+Random sample size: 500,000 records
+Valid records: 498,874
+Rejected records: 1,126
+Random sample rejection rate: 0.2252%
+```
+
+## MVP Port Scope
+
+The current MVP focuses on five US port areas:
+
+- Los Angeles / Long Beach
+- New York / New Jersey
+- Houston
+- Savannah
+- Seattle / Tacoma
+
+## Pipeline Design
+
+```text
+Raw AIS data
+→ Bronze AIS messages
+→ Silver vessel positions clean
+→ Silver vessel port proximity
+→ Silver vessel stops
+→ Gold port congestion daily
+→ Gold vessel anomalies
+```
+
+## Lakehouse Layers
+
+### Raw
+
+Original AIS files and local development samples.
+
+### Bronze
+
+Standardized AIS records with:
+
+- deterministic message ID
+- source file
+- ingestion timestamp
+- normalized column names
+- raw payload hash
+- year/month/day partition fields
+
+### Silver
+
+Cleaned and enriched datasets:
+
+- `silver_vessel_positions_clean`
+- `silver_vessel_port_proximity`
+- `silver_vessel_stops`
+- `silver_data_quality_report`
+
+### Gold
+
+Analytics-ready outputs:
+
+- `gold_port_congestion_daily`
+- `gold_vessel_anomalies`
+
+## Data Quality
+
+The pipeline checks:
+
+- invalid latitude or longitude
+- missing vessel identifier
+- duplicate message ID
+- future timestamp
+- impossible speed
+- unavailable AIS speed sentinel value
+
+The AIS speed value `102.3` is treated as `speed_not_available`, not as a real speed.
+
+Random sample quality results:
+
+| Metric | Value |
+|---|---:|
+| Total records | 500,000 |
+| Valid records | 498,874 |
+| Rejected records | 1,126 |
+| Rejection rate | 0.2252% |
+| speed_not_available | 1,121 |
+| impossible_speed | 3 |
+| duplicate_message_id | 2 |
+
+## Geospatial Processing
+
+The MVP uses latitude and longitude to calculate:
+
+- nearest MVP port
+- distance to nearest port
+- whether a vessel is within 20 km of a port
+- stopped vessel episodes near ports
+- dwell time in minutes
+
+Current assumptions:
+
+- port radius: 20 km
+- stopped vessel threshold: speed lower than 1 knot
+- minimum stop duration: 30 minutes
+- maximum gap within same stop episode: 60 minutes
+
+## Local MVP Results
+
+### Port Proximity
+
+| Port | Distinct Vessels | AIS Positions Within 20 km |
+|---|---:|---:|
+| Houston | 302 | 15,110 |
+| Los Angeles / Long Beach | 324 | 9,730 |
+| New York / New Jersey | 300 | 12,295 |
+| Savannah | 79 | 2,804 |
+| Seattle / Tacoma | 711 | 20,629 |
+
+### Vessel Stops
+
+| Port | Stops | Stopped Vessels | Avg Dwell Minutes |
+|---|---:|---:|---:|
+| Houston | 945 | 279 | 211.16 |
+| Los Angeles / Long Beach | 1,078 | 272 | 126.38 |
+| New York / New Jersey | 783 | 257 | 183.93 |
+| Savannah | 235 | 64 | 167.32 |
+| Seattle / Tacoma | 2,516 | 614 | 121.13 |
+
+### Gold Port Congestion
+
+| Port | Vessels Near Port | Stopped Vessels | Avg Dwell Minutes | P90 Dwell Minutes | Stopped Position Count | Anomaly Count | Port Congestion Index |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Houston | 302 | 279 | 211.16 | 494.16 | 13,400 | 0 | 0.6649 |
+| Los Angeles / Long Beach | 324 | 272 | 126.38 | 254.97 | 8,856 | 2 | 0.2635 |
+| New York / New Jersey | 300 | 257 | 183.93 | 428.91 | 9,834 | 44 | 0.4906 |
+| Savannah | 79 | 64 | 167.32 | 339.20 | 2,610 | 13 | 0.1796 |
+| Seattle / Tacoma | 711 | 614 | 121.13 | 228.02 | 19,626 | 23 | 0.6500 |
+
+## Port Congestion Index
+
+The MVP Port Congestion Index uses:
+
+```text
+0.40 * normalized_stopped_vessels
++ 0.35 * normalized_avg_dwell_time
++ 0.25 * normalized_stopped_position_count
+```
+
+Weather is not included in the MVP.
+
+The score is relative to the selected sample and selected ports. It should not be interpreted as an absolute real-world congestion measurement.
+
+## Repository Structure
+
+```text
+harborwatch-aws-lakehouse/
+├── README.md
+├── architecture/
+├── data/
+├── dashboard/
+├── docs/
+├── src/
+│   ├── ingestion/
+│   ├── glue_jobs/
+│   └── quality/
+├── terraform/
+└── tests/
+```
+
+## How to Run Locally
+
+The local MVP pipeline can be executed with `make`.
+
+Current local pipeline order:
+
+```text
+1. Create random AIS sample
+2. Raw to Bronze
+3. Bronze quality profiling
+4. Bronze to Silver clean positions
+5. Silver positions to port proximity
+6. Port proximity to vessel stops
+7. Silver to Gold vessel anomalies
+8. Silver to Gold port congestion
+```
+
+## Documentation
+
+Additional documentation:
+
+- `docs/assumptions.md`
+- `docs/local_mvp_results.md`
+
+## Current Limitations
+
+- Local MVP uses CSV files, not Iceberg tables yet.
+- AWS infrastructure is not implemented yet.
+- Port proximity is point-based, not polygon-based.
+- Stop detection is rule-based and approximate.
+- Only one AIS day is used.
+- Local analytical outputs are based on a random sample, not the full dataset.
+- The Port Congestion Index is relative to the sample and MVP ports.
+
+## Next Steps
+
+- Add tests for data quality and geospatial functions
+- Add Makefile for local reproducibility
+- Improve script parametrization
+- Create architecture diagram
+- Add Terraform foundation
+- Deploy Raw/Bronze/Silver/Gold pipeline to AWS
+- Query outputs with Athena
+- Add dashboard or result screenshots
