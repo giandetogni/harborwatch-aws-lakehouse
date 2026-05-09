@@ -239,6 +239,7 @@ Additional documentation:
 
 - `docs/assumptions.md`
 - `docs/local_mvp_results.md`
+- `architecture/local_mvp_architecture.md`
 
 ## Current Limitations
 
