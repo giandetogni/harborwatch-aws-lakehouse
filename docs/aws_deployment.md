@@ -111,3 +111,27 @@ Execution result:
 - Output location: s3://harborwatch-dev-lakehouse-giandetogni/athena-results/ed921db1-34aa-4671-b504-4efa6e4872fd.csv
 
 This confirms that the Terraform-managed Athena workgroup can execute queries against the Gold external tables.
+
+## AWS Glue Raw-to-Bronze Validation
+
+The first AWS Glue job was executed successfully.
+
+Flow validated:
+
+- Raw AIS CSV uploaded to S3 Raw
+- AWS Glue job transformed Raw CSV into Bronze Parquet
+- Bronze Parquet was written to S3
+- Athena external table was created for Bronze
+- Athena query validated row count and timestamp range
+
+Bronze output path:
+
+s3://harborwatch-dev-lakehouse-giandetogni/bronze/ais_messages/
+
+Validation query result:
+
+- row_count: 1000
+- min_event_timestamp: 2024-01-01 00:00:00
+- max_event_timestamp: 2024-01-01 23:59:37
+
+This confirms that the AWS Raw-to-Bronze pipeline is operational.
