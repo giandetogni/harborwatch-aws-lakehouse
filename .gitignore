@@ -14,3 +14,10 @@ data/raw/public_ais/
 # Generated local pipeline outputs
 data/processed/
 data/profiling/
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+.terraform.lock.hcl

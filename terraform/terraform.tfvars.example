@@ -1,0 +1,5 @@
+aws_region         = "us-east-1"
+project_name       = "harborwatch"
+environment        = "dev"
+bucket_name_suffix = "giandetogni"
+glue_database_name = "harborwatch_lakehouse"
