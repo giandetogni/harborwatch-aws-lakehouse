@@ -69,3 +69,24 @@ Gold CSV outputs were uploaded to S3:
 - s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_vessel_anomalies/date=2024-01-01/gold_vessel_anomalies.csv
 
 These files prove that the AWS foundation contains real analytical outputs from the local MVP pipeline.
+
+## Athena Validation
+
+Athena external tables were created for the Gold outputs:
+
+- harborwatch_lakehouse.gold_port_congestion_daily
+- harborwatch_lakehouse.gold_vessel_anomalies
+
+Validated queries:
+
+- Port congestion ranking returned 5 MVP ports.
+- Vessel anomalies query returned anomaly counts within the 20 km port radius.
+
+Anomalies within port radius:
+
+- New York / New Jersey: 44
+- Seattle / Tacoma: 23
+- Savannah: 13
+- Los Angeles / Long Beach: 2
+
+This confirms that the S3 Gold outputs are queryable through Athena.
