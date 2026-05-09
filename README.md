@@ -220,6 +220,14 @@ harborwatch-aws-lakehouse/
 
 The local MVP pipeline can be executed with `make`.
 
+Main commands:
+
+```bash
+make run-local
+make show-results
+make clean-outputs
+```
+
 Current local pipeline order:
 
 ```text
