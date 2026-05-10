@@ -493,6 +493,11 @@ Additional documentation:
 - `architecture/local_mvp_architecture.md`
 - `architecture/aws_target_architecture.md`
 - `sql/create_athena_gold_tables.sql`
+- `docs/cost_estimate.md`
+- `docs/runbook.md`
+- `docs/incident_response.md`
+- `architecture/aws_target_architecture.md`
+- `evidence/validation_summary.md`
 
 ## Security
 
