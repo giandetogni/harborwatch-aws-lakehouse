@@ -184,3 +184,11 @@ Port proximity aggregate result:
 - New York / New Jersey: 166 total positions, 27 within 20 km, 160 distinct vessels
 - Los Angeles / Long Beach: 99 total positions, 17 within 20 km, 93 distinct vessels
 - Savannah: 202 total positions, 10 within 20 km, 190 distinct vessels
+
+Port proximity aggregate result:
+
+- Seattle / Tacoma: 165 total positions, 47 within 20 km, 153 distinct vessels
+- Houston: 365 total positions, 37 within 20 km, 338 distinct vessels
+- New York / New Jersey: 166 total positions, 27 within 20 km, 160 distinct vessels
+- Los Angeles / Long Beach: 99 total positions, 17 within 20 km, 93 distinct vessels
+- Savannah: 202 total positions, 10 within 20 km, 190 distinct vessels
