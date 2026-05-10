@@ -61,3 +61,37 @@ resource "aws_glue_job" "bronze_to_silver_clean" {
     "--OUTPUT_PATH"                      = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/vessel_positions_clean/"
   }
 }
+
+
+resource "aws_s3_object" "silver_to_port_proximity_glue_script" {
+  bucket = aws_s3_bucket.lakehouse.id
+  key    = "scripts/glue/silver_to_port_proximity_glue.py"
+  source = "${path.module}/../src/glue_jobs_aws/silver_to_port_proximity_glue.py"
+  etag   = filemd5("${path.module}/../src/glue_jobs_aws/silver_to_port_proximity_glue.py")
+}
+
+resource "aws_glue_job" "silver_to_port_proximity" {
+  name              = "${local.name_prefix}-silver-to-port-proximity"
+  description       = "Enriches Silver AIS positions with nearest port and port radius flags."
+  role_arn          = aws_iam_role.glue_service_role.arn
+  glue_version      = "4.0"
+  worker_type       = "G.1X"
+  number_of_workers = 2
+  timeout           = 10
+  max_retries       = 0
+
+  command {
+    name            = "glueetl"
+    script_location = "s3://${aws_s3_bucket.lakehouse.bucket}/${aws_s3_object.silver_to_port_proximity_glue_script.key}"
+    python_version  = "3"
+  }
+
+  default_arguments = {
+    "--job-language"                     = "python"
+    "--enable-metrics"                   = "true"
+    "--enable-continuous-cloudwatch-log" = "true"
+    "--INPUT_POSITIONS_PATH"             = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/vessel_positions_clean/"
+    "--INPUT_PORTS_PATH"                 = "s3://${aws_s3_bucket.lakehouse.bucket}/raw/reference/ports/harborwatch_ports_mvp.csv"
+    "--OUTPUT_PATH"                      = "s3://${aws_s3_bucket.lakehouse.bucket}/silver/vessel_port_proximity/"
+  }
+}
