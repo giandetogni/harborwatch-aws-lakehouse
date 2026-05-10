@@ -223,6 +223,60 @@ Weather is not included in the MVP.
 
 The score is relative to the selected sample and selected ports. It should not be interpreted as an absolute real-world congestion measurement.
 
+## AWS End-to-End Pipeline Status
+
+The AWS pipeline is operational and orchestrated through AWS Step Functions.
+
+Validated AWS flow:
+
+```text
+S3 Raw AIS sample
+→ AWS Glue Raw-to-Bronze
+→ Bronze Parquet
+→ AWS Glue Bronze-to-Silver Clean
+→ Silver Clean Parquet
+→ Silver Data Quality Report
+→ AWS Glue Silver-to-Port-Proximity
+→ Silver Port Proximity Parquet
+→ AWS Glue Port-Proximity-to-Vessel-Stops
+→ Silver Vessel Stops Parquet
+→ Athena Gold Port Congestion Daily
+```
+
+AWS orchestration:
+
+- Step Functions state machine: `harborwatch-dev-lakehouse-pipeline`
+- Step Functions execution status: `SUCCEEDED`
+- Orchestrated Glue jobs:
+  - `harborwatch-dev-raw-to-bronze`
+  - `harborwatch-dev-bronze-to-silver-clean`
+  - `harborwatch-dev-silver-to-port-proximity`
+  - `harborwatch-dev-port-proximity-to-vessel-stops`
+
+Latest AWS validation results:
+
+- AIS sample size: 10,000 records
+- Silver Data Quality Report: 1,000 total records, 997 valid, 3 rejected, 0.003 rejection rate
+- Silver Port Proximity: geospatial distance to MVP ports calculated with Haversine distance
+- Silver Vessel Stops detected: 26
+- AWS-native Gold table returned 5 MVP ports
+- Final Step Functions output path: `s3://harborwatch-dev-lakehouse-giandetogni/silver/vessel_stops/`
+
+AWS-native Gold Port Congestion ranking:
+
+| Port | Vessels Near Port | Stopped Vessels | Avg Dwell Minutes | P90 Dwell Minutes | Stopped Position Count | Data Quality Rejection Rate | Port Congestion Index |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Houston | 175 | 12 | 42.02 | 51.50 | 281 | 0.003 | 0.6405 |
+| Seattle / Tacoma | 278 | 8 | 40.50 | 54.00 | 384 | 0.003 | 0.5045 |
+| New York / New Jersey | 155 | 1 | 47.97 | 47.97 | 191 | 0.003 | 0.4487 |
+| Los Angeles / Long Beach | 119 | 4 | 44.40 | 57.83 | 173 | 0.003 | 0.3765 |
+| Savannah | 43 | 1 | 41.85 | 41.85 | 65 | 0.003 | 0.0633 |
+
+Current AWS limitation:
+
+- AWS-native vessel anomaly generation is not implemented yet, so `anomaly_count` is currently set to `0` in the AWS-native Gold table.
+- Apache Iceberg migration is still planned.
+
 ## AWS Deployment
 
 The current AWS foundation was provisioned with Terraform.
