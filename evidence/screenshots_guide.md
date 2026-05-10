@@ -173,13 +173,13 @@ This keeps the README clean while preserving detailed validation evidence in ded
 
 | Screenshot | Status |
 |---|---|
-| Step Functions succeeded | Pending |
-| Glue jobs successful runs | Pending |
-| Athena Gold result | Pending |
-| Athena vessel stops validation | Pending |
-| S3 lakehouse prefixes | Pending |
-| GitHub Actions CI | Pending |
-| Terraform outputs | Pending |
+| Step Functions succeeded | Added |
+| Glue jobs successful runs | Added |
+| Athena Gold result | Added |
+| Athena vessel stops validation | Added |
+| S3 lakehouse prefixes | Added |
+| GitHub Actions CI | Added |
+| Terraform outputs | Added |
 
 ## Notes
 
