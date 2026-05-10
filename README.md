@@ -12,9 +12,9 @@ Port congestion affects supply chain reliability. Raw AIS vessel tracking data i
 
 HarborWatch turns raw maritime data into structured, quality-controlled, analytics-ready datasets that can support port congestion analysis, dwell time monitoring, vessel anomaly detection, and operational risk intelligence.
 
-## Current Statusđ
+## Current Status
 
-The project currently has a working local MVP and an initial AWS foundation.
+HarborWatch has a working local MVP and an AWS-deployed MVP.
 
 ### Implemented locally
 
@@ -30,27 +30,33 @@ The project currently has a working local MVP and an initial AWS foundation.
 - Unit tests for geospatial, quality, and congestion rules
 - Local pipeline orchestration through Makefile
 - CI with GitHub Actions
-- Local architecture and assumptions documentation
 
 ### Implemented on AWS
 
-- Terraform foundation for S3 and Glue Data Catalog
-- Private S3 lakehouse bucket
-- Raw, Bronze, Silver, Gold, and Athena results prefixes
+- Terraform-managed S3 lakehouse bucket
+- Private S3 Raw, Bronze, Silver, Gold, scripts, and Athena results prefixes
 - Glue Data Catalog database
-- Gold CSV outputs uploaded to S3
-- Athena external tables for Gold congestion and vessel anomalies
-- Athena validation queries returning port congestion and anomaly results
+- Athena workgroup
+- AWS Glue Raw-to-Bronze job
+- AWS Glue Bronze-to-Silver Clean job
+- AWS Glue Silver-to-Port-Proximity job
+- AWS Glue Port-Proximity-to-Vessel-Stops job
+- Silver Data Quality Report
+- Silver Port Proximity geospatial enrichment
+- Silver Vessel Stops with dwell time
+- AWS-native Gold Port Congestion table
+- Step Functions orchestration for the Glue pipeline
+- Terraform-managed IAM roles and policies
+- AWS validation screenshots
+- Cost estimate, runbook, incident response, data dictionary, and architecture documentation
 
-### Planned next
+### Not implemented yet
 
-- Terraform-managed Athena workgroup
-- AWS Glue ETL jobs
-- Apache Iceberg tables
-- Step Functions orchestration
-- CloudWatch logging and monitoring
-- Cost estimate and operational runbook
-- Dashboard or query result screenshots
+- Apache Iceberg table migration
+- AWS-native vessel anomaly generation
+- EventBridge scheduled execution
+- CloudWatch alarms
+- Dashboard layer
 
 ## Data Source
 
@@ -487,17 +493,21 @@ harborwatch-aws-lakehouse/
 
 Additional documentation:
 
-- `docs/assumptions.md`
-- `docs/local_mvp_results.md`
-- `docs/aws_deployment.md`
-- `architecture/local_mvp_architecture.md`
-- `architecture/aws_target_architecture.md`
-- `sql/create_athena_gold_tables.sql`
-- `docs/cost_estimate.md`
-- `docs/runbook.md`
-- `docs/incident_response.md`
-- `architecture/aws_target_architecture.md`
-- `evidence/validation_summary.md`
+- docs/assumptions.md
+- docs/local_mvp_results.md
+- docs/aws_deployment.md
+- architecture/local_mvp_architecture.md
+- architecture/aws_target_architecture.md
+- sql/create_athena_gold_tables.sql
+- docs/cost_estimate.md
+- docs/runbook.md
+- docs/incident_response.md
+- evidence/validation_summary.md
+- docs/data_dictionary.md
+- docs/release_checklist.md
+- architecture/tradeoffs.md
+- evidence/screenshots_guide.md
+- evidence/screenshots/
 
 ## Evidence
 
@@ -528,14 +538,17 @@ Current security choices:
 
 ## Current Limitations
 
-- Local MVP uses CSV files, not Iceberg tables yet.
-- AWS Glue ETL jobs are not implemented yet.
-- Port proximity is point-based, not polygon-based.
+- Apache Iceberg is not implemented yet.
+- AWS-native vessel anomaly generation is not implemented yet.
+- AWS-native Gold currently sets `anomaly_count` to `0`.
+- Weather is not included in the AWS-native Gold table.
+- Port proximity is point-based using representative coordinates and a 20 km radius, not official port polygons.
 - Stop detection is rule-based and approximate.
-- Only one AIS day is used.
-- Local analytical outputs are based on a random sample, not the full dataset.
-- The Port Congestion Index is relative to the sample and MVP ports.
-- Athena currently queries external CSV Gold tables, not Iceberg tables.
+- The AWS execution uses bounded AIS samples for cost control.
+- The Port Congestion Index is relative to the selected sample and MVP ports.
+- The pipeline is batch-oriented, not real-time streaming.
+- EventBridge scheduling and CloudWatch alarms are not implemented yet.
+- A dashboard is not implemented yet.
 
 ## Trade-offs
 
@@ -557,10 +570,11 @@ The MVP uses a 20 km radius around port coordinates. A production-grade version 
 
 ## Next Steps
 
-- Add Terraform-managed Athena workgroup
-- Port local CSV transformations to AWS Glue jobs
-- Store Bronze, Silver, and Gold tables as Apache Iceberg
-- Orchestrate the AWS pipeline with Step Functions
-- Add CloudWatch logging and pipeline monitoring
-- Add cost estimate and operational runbook
-- Add dashboard or query result screenshots
+- Migrate Bronze, Silver, and Gold tables to Apache Iceberg.
+- Add AWS-native vessel anomaly generation.
+- Join AWS-native anomaly counts into the Gold congestion table.
+- Add EventBridge scheduled execution.
+- Add CloudWatch alarms and operational metrics.
+- Add S3 lifecycle policies for temporary outputs.
+- Add a lightweight dashboard using Streamlit or QuickSight.
+- Improve CI with Terraform formatting checks and linting.
