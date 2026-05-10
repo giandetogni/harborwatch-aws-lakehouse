@@ -285,86 +285,70 @@ Current AWS limitation:
 
 ## AWS Deployment
 
-The current AWS foundation was provisioned with Terraform.
+The AWS MVP is deployed with Terraform and validated through AWS Glue, Athena, S3, and Step Functions.
 
-Created resources:
+### Terraform-managed resources
 
-- S3 lakehouse bucket
-- Raw zone prefix
-- Bronze zone prefix
-- Silver zone prefix
-- Gold zone prefix
-- Athena results prefix
+- Private S3 lakehouse bucket
+- Raw, Bronze, Silver, Gold, scripts, and Athena results prefixes
 - Glue Data Catalog database
+- Athena workgroup
+- AWS Glue ETL jobs
+- Glue job scripts uploaded to S3
+- IAM roles and policies for Glue and Step Functions
+- Step Functions state machine
 
-S3 bucket:
+### S3 bucket
 
-```text
-harborwatch-dev-lakehouse-giandetogni
-```
+`harborwatch-dev-lakehouse-giandetogni`
 
-S3 prefixes:
+### Main S3 prefixes
 
-```text
-athena-results/
-bronze/
-gold/
-raw/
-silver/
-```
+- `raw/`
+- `bronze/`
+- `silver/`
+- `gold/`
+- `scripts/`
+- `athena-results/`
 
-Glue database:
+### Glue Data Catalog database
 
-```text
-harborwatch_lakehouse
-```
+`harborwatch_lakehouse`
 
-Gold outputs uploaded to S3:
+### AWS Glue jobs
 
-```text
-s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_port_congestion_daily/date=2024-01-01/gold_port_congestion_daily.csv
-s3://harborwatch-dev-lakehouse-giandetogni/gold/gold_vessel_anomalies/date=2024-01-01/gold_vessel_anomalies.csv
-```
+- `harborwatch-dev-raw-to-bronze`
+- `harborwatch-dev-bronze-to-silver-clean`
+- `harborwatch-dev-silver-to-port-proximity`
+- `harborwatch-dev-port-proximity-to-vessel-stops`
 
-## Athena Validation
+### Step Functions
 
-Athena external tables were created for:
+State machine:
 
-- `harborwatch_lakehouse.gold_port_congestion_daily`
-- `harborwatch_lakehouse.gold_vessel_anomalies`
+- `harborwatch-dev-lakehouse-pipeline`
 
-Validated query:
+Validated execution:
 
-```sql
-SELECT *
-FROM harborwatch_lakehouse.gold_port_congestion_daily
-ORDER BY port_congestion_index DESC;
-```
+- Status: `SUCCEEDED`
+- Final output: `s3://harborwatch-dev-lakehouse-giandetogni/silver/vessel_stops/`
 
-Result: 5 MVP ports returned.
+### Athena validation
 
-Validated anomaly query:
+Validated AWS tables include:
 
-```sql
-SELECT
-  nearest_port_name,
-  anomaly_type,
-  severity,
-  COUNT(*) AS anomaly_count
-FROM harborwatch_lakehouse.gold_vessel_anomalies
-WHERE is_within_port_radius = 'True'
-GROUP BY nearest_port_name, anomaly_type, severity
-ORDER BY anomaly_count DESC;
-```
+- `harborwatch_lakehouse.silver_vessel_positions_clean`
+- `harborwatch_lakehouse.silver_data_quality_report`
+- `harborwatch_lakehouse.silver_vessel_port_proximity`
+- `harborwatch_lakehouse.silver_vessel_stops`
+- `harborwatch_lakehouse.gold_port_congestion_daily_aws`
 
-Result:
+Current AWS validation highlights:
 
-| Port | Anomaly Type | Severity | Count |
-|---|---|---|---:|
-| New York / New Jersey | speed_not_available | low | 44 |
-| Seattle / Tacoma | speed_not_available | low | 23 |
-| Savannah | speed_not_available | low | 13 |
-| Los Angeles / Long Beach | speed_not_available | low | 2 |
+- Silver Data Quality: 997 valid records, 3 rejected records in the initial 1k validation
+- Silver Vessel Stops: 26 detected stops from the 10k AWS sample
+- Gold Port Congestion: 5 MVP ports returned
+- Step Functions orchestration: `SUCCEEDED`
 
 ## How to Run Locally
 
@@ -434,8 +418,13 @@ Current Terraform scope:
 - S3 public access block
 - S3 server-side encryption
 - S3 versioning
-- Raw/Bronze/Silver/Gold/Athena prefixes
+- Raw/Bronze/Silver/Gold/Scripts/Athena prefixes
 - Glue Data Catalog database
+- Glue job script uploads
+- AWS Glue ETL jobs
+- Athena workgroup
+- IAM roles and policies
+- Step Functions state machine
 - Terraform outputs
 
 Validate Terraform:
