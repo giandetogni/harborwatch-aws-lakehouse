@@ -12,7 +12,7 @@ Port congestion affects supply chain reliability. Raw AIS vessel tracking data i
 
 HarborWatch turns raw maritime data into structured, quality-controlled, analytics-ready datasets that can support port congestion analysis, dwell time monitoring, vessel anomaly detection, and operational risk intelligence.
 
-## Current Status
+## Current Statusđ
 
 The project currently has a working local MVP and an initial AWS foundation.
 
@@ -498,6 +498,23 @@ Additional documentation:
 - `docs/incident_response.md`
 - `architecture/aws_target_architecture.md`
 - `evidence/validation_summary.md`
+
+## Evidence
+
+Validation evidence and operational proof are available in:
+
+- `evidence/validation_summary.md`
+- `evidence/screenshots_guide.md`
+- `evidence/screenshots/`
+
+The current AWS MVP has validated:
+
+- Step Functions execution with `SUCCEEDED`
+- AWS Glue jobs running end-to-end
+- Silver Data Quality Report
+- Silver Port Proximity geospatial enrichment
+- Silver Vessel Stops with 26 detected stops
+- AWS-native Gold Port Congestion table with 5 MVP ports
 
 ## Security
 
