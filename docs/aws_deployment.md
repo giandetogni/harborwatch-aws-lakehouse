@@ -219,3 +219,31 @@ Stops by port:
 - Savannah: 1 stop, 1 stopped vessel, 41.85 avg dwell minutes
 
 This confirms that the AWS dwell time layer is operational.
+
+## AWS Gold Port Congestion Validation
+
+The AWS-native Gold Port Congestion table was created and validated through Athena.
+
+Flow validated:
+
+- Silver port proximity metrics were aggregated by port and date
+- Silver vessel stops were joined to compute stopped vessels and dwell time
+- Silver data quality report was joined to include rejection rate
+- Port Congestion Index was calculated in Athena
+- Gold output was materialized as Parquet in S3
+
+Validation result:
+
+| Port | Vessels Near Port | Stopped Vessels | Avg Dwell Minutes | P90 Dwell Minutes | Stopped Position Count | Data Quality Rejection Rate | Port Congestion Index |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Houston | 175 | 12 | 42.02 | 51.50 | 281 | 0.003 | 0.6405 |
+| Seattle / Tacoma | 278 | 8 | 40.50 | 54.00 | 384 | 0.003 | 0.5045 |
+| New York / New Jersey | 155 | 1 | 47.97 | 47.97 | 191 | 0.003 | 0.4487 |
+| Los Angeles / Long Beach | 119 | 4 | 44.40 | 57.83 | 173 | 0.003 | 0.3765 |
+| Savannah | 43 | 1 | 41.85 | 41.85 | 65 | 0.003 | 0.0633 |
+
+Current limitation:
+
+- anomaly_count is set to 0 because AWS-native vessel anomaly generation has not been implemented yet.
+
+This confirms that the AWS pipeline now produces a Gold analytical congestion table from AWS Silver datasets.
