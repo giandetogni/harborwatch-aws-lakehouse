@@ -71,3 +71,14 @@ output "port_proximity_to_vessel_stops_glue_job_name" {
   description = "AWS Glue job name for vessel stop detection."
   value       = aws_glue_job.port_proximity_to_vessel_stops.name
 }
+
+
+output "lakehouse_pipeline_state_machine_name" {
+  description = "AWS Step Functions state machine for HarborWatch lakehouse pipeline."
+  value       = aws_sfn_state_machine.lakehouse_pipeline.name
+}
+
+output "lakehouse_pipeline_state_machine_arn" {
+  description = "ARN of the HarborWatch Step Functions state machine."
+  value       = aws_sfn_state_machine.lakehouse_pipeline.arn
+}

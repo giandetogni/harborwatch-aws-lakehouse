@@ -56,3 +56,47 @@ resource "aws_iam_role_policy_attachment" "glue_lakehouse_s3_access" {
   role       = aws_iam_role.glue_service_role.name
   policy_arn = aws_iam_policy.glue_lakehouse_s3_access.arn
 }
+
+
+resource "aws_iam_role" "step_functions_role" {
+  name = "${local.name_prefix}-step-functions-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "states.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "step_functions_glue_access" {
+  name = "${local.name_prefix}-step-functions-glue-access"
+  role = aws_iam_role.step_functions_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "glue:StartJobRun",
+          "glue:GetJobRun",
+          "glue:GetJobRuns",
+          "glue:BatchStopJobRun"
+        ]
+        Resource = [
+          aws_glue_job.raw_to_bronze.arn,
+          aws_glue_job.bronze_to_silver_clean.arn,
+          aws_glue_job.silver_to_port_proximity.arn,
+          aws_glue_job.port_proximity_to_vessel_stops.arn
+        ]
+      }
+    ]
+  })
+}
