@@ -6,6 +6,14 @@ HarborWatch is a data engineering project that transforms public AIS vessel trac
 
 The project ingests raw vessel position data, standardizes it into a Bronze layer, validates and enriches it into Silver datasets, applies geospatial processing near major US ports, and produces Gold analytical tables for congestion and anomaly monitoring.
 
+## Key Results
+
+- Built an AWS lakehouse pipeline for public AIS maritime data using S3, Glue, Athena, Step Functions, IAM, and Terraform.
+- Processed AIS vessel positions into Bronze, Silver, and Gold analytical layers.
+- Implemented data quality validation, geospatial nearest-port enrichment, vessel stop detection, and dwell time metrics.
+- Orchestrated the AWS Glue pipeline end-to-end with Step Functions.
+- Produced AWS-native Gold congestion metrics for 5 major US port areas, with validation screenshots and operational documentation.
+
 ## Problem
 
 Port congestion affects supply chain reliability. Raw AIS vessel tracking data is large, noisy, geospatial, time-dependent, and difficult to analyze directly.
