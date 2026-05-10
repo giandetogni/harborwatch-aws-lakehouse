@@ -65,3 +65,9 @@ output "bronze_to_silver_clean_glue_job_name" {
   description = "AWS Glue job name for Bronze to Silver clean transformation."
   value       = aws_glue_job.bronze_to_silver_clean.name
 }
+
+
+output "port_proximity_to_vessel_stops_glue_job_name" {
+  description = "AWS Glue job name for vessel stop detection."
+  value       = aws_glue_job.port_proximity_to_vessel_stops.name
+}
