@@ -247,3 +247,22 @@ Current limitation:
 - anomaly_count is set to 0 because AWS-native vessel anomaly generation has not been implemented yet.
 
 This confirms that the AWS pipeline now produces a Gold analytical congestion table from AWS Silver datasets.
+
+## AWS Step Functions Pipeline Validation
+
+The AWS Step Functions lakehouse pipeline was created with Terraform and executed successfully.
+
+Orchestrated Glue jobs:
+
+- harborwatch-dev-raw-to-bronze
+- harborwatch-dev-bronze-to-silver-clean
+- harborwatch-dev-silver-to-port-proximity
+- harborwatch-dev-port-proximity-to-vessel-stops
+
+Validation result:
+
+- Step Functions execution status: SUCCEEDED
+- Final output path: s3://harborwatch-dev-lakehouse-giandetogni/silver/vessel_stops/
+- Athena validation query returned vessel stops after orchestration
+
+This confirms that the AWS Glue pipeline is now orchestrated end-to-end through Step Functions.
