@@ -154,3 +154,25 @@ Validation result:
 - rejection_rate: 0.003
 
 This confirms that the AWS Silver layer has an auditable data quality report.
+
+## AWS Silver Port Proximity Validation
+
+The AWS Glue Silver-to-Port-Proximity job was executed successfully.
+
+Flow validated:
+
+- Silver clean Parquet was read from S3
+- Port reference CSV was read from S3
+- Haversine distance was calculated for MVP ports
+- Nearest port was selected for each valid vessel position
+- is_within_port_radius was calculated using a 20 km threshold
+- Silver port proximity Parquet was written to S3
+- Athena external table was created and validated
+
+Validation result:
+
+- row_count: 997
+- closest observed vessel-port distance: 0.35 km
+- sample records returned vessels within 20 km of Los Angeles / Long Beach, Houston, Savannah, Seattle / Tacoma, and New York / New Jersey
+
+This confirms that the AWS geospatial enrichment layer is operational.
