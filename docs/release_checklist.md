@@ -61,14 +61,14 @@ This checklist defines the minimum quality bar before presenting HarborWatch pub
 
 ## Security
 
-- [ ] No AWS access keys committed.
-- [ ] No secrets committed.
-- [ ] No .env file committed.
-- [ ] No terraform.tfvars committed.
-- [ ] No terraform.tfstate committed.
-- [ ] S3 bucket is private.
-- [ ] Public access is blocked.
-- [ ] IAM roles are scoped to HarborWatch resources.
+- [x] No AWS access keys committed.
+- [x] No secrets committed.
+- [x] No .env file committed.
+- [x] No terraform.tfvars committed.
+- [x] No terraform.tfstate committed.
+- [x] S3 bucket is private.
+- [x] Public access is blocked.
+- [x] IAM roles are scoped to HarborWatch resources.
 
 ## Known Limitations
 
