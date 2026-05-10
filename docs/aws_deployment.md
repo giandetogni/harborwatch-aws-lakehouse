@@ -192,3 +192,30 @@ Port proximity aggregate result:
 - New York / New Jersey: 166 total positions, 27 within 20 km, 160 distinct vessels
 - Los Angeles / Long Beach: 99 total positions, 17 within 20 km, 93 distinct vessels
 - Savannah: 202 total positions, 10 within 20 km, 190 distinct vessels
+
+## AWS Silver Vessel Stops Validation
+
+The AWS Glue Vessel Stops job was executed successfully using the 10k AIS sample.
+
+Flow validated:
+
+- Silver port proximity Parquet was read from S3
+- Stopped vessel candidates were filtered using speed_knots < 1 and is_within_port_radius = true
+- Stop episodes were grouped by vessel and nearest port
+- Minimum dwell time threshold of 30 minutes was applied
+- Silver vessel stops Parquet was written to S3
+- Athena external table was created and validated
+
+Validation result:
+
+- total_stops: 26
+
+Stops by port:
+
+- Houston: 12 stops, 12 stopped vessels, 42.02 avg dwell minutes, 59.97 max dwell minutes
+- Seattle / Tacoma: 8 stops, 8 stopped vessels, 40.50 avg dwell minutes, 54.00 max dwell minutes
+- Los Angeles / Long Beach: 4 stops, 4 stopped vessels, 44.40 avg dwell minutes, 57.83 max dwell minutes
+- New York / New Jersey: 1 stop, 1 stopped vessel, 47.97 avg dwell minutes
+- Savannah: 1 stop, 1 stopped vessel, 41.85 avg dwell minutes
+
+This confirms that the AWS dwell time layer is operational.
